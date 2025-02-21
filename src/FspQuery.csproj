@@ -38,6 +38,14 @@
 		
 	</PropertyGroup>
 
+	<!-- Includes -->
+	<ItemGroup>
+		<None Include="..\LICENSE.md" Pack="true" PackagePath="\LICENSE.md" />
+		<None Include="..\README.md" Pack="true" PackagePath="\README.md" />
+		<None Include="..\doc\icons\icon-128x128.png" Pack="true" PackagePath="\" />
+		<None Include="..\doc\icons\icon-64x64.png" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
 	<!-- Package References -->
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
