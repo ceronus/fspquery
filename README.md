@@ -3,6 +3,10 @@
 FspQuery (filter-sort-page-query a.k.a "fspq") is a powerful and lightweight library designed to simplify filtering, sorting, and paging for structured queries.
 It offers seamless integration with LINQ-based queries and provides an intuitive API for working with large datasets efficiently.
 
+[![NuGet version (FspQuery](https://github.com/ceronus/fspquery/actions/workflows/nuget.yml/badge.svg)](https://github.com/ceronus/fspquery/actions/workflows/nuget.yml)
+[![Build](https://github.com/ceronus/fspquery/actions/workflows/ci.yml/badge.svg)](https://github.com/ceronus/fspquery/actions/workflows/ci.yml)
+
+
 ## Features
 - ✅ **Filtering**: Apply flexible conditions to refine results.
 - ✅ **Sorting**: Easily sort data by specified properties.
