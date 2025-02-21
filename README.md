@@ -1,10 +1,12 @@
-﻿# ![Logo](https://github.com/ceronus/filter-sort-page-query/blob/master/doc/icons/icon-64x64.png?raw=true) FspQuery
-
+﻿# ![Logo](https://raw.githubusercontent.com/ceronus/fspquery/master/doc/icons/icon-64x64.png) FspQuery
 FspQuery (filter-sort-page-query a.k.a "fspq") is a powerful and lightweight library designed to simplify filtering, sorting, and paging for structured queries.
 It offers seamless integration with LINQ-based queries and provides an intuitive API for working with large datasets efficiently.
 
-[![NuGet version (FspQuery](https://github.com/ceronus/fspquery/actions/workflows/nuget.yml/badge.svg)](https://github.com/ceronus/fspquery/actions/workflows/nuget.yml)
+[![NuGet version (FspQuery)](https://img.shields.io/nuget/v/fspquery?style=for-the-badge)](https://www.nuget.org/packages/fspquery/)  
 [![Build](https://github.com/ceronus/fspquery/actions/workflows/ci.yml/badge.svg)](https://github.com/ceronus/fspquery/actions/workflows/ci.yml)
+
+## Repository
+[GitHub Repository](https://github.com/ceronus/filter-sort-page-query)
 
 
 ## Features
@@ -64,6 +66,14 @@ data.ApplyPaging(fspLogic, fspOptions);
 data.ApplyFiltering(fspLogic, fspOptions);
 data.ApplySorting(fspLogic, fspOptions);
 ```
+
+## Dependency Injection
+You can add it to your project using dependency injection:
+```csharp
+services.AddFspQuery();
+```
+
+
 
 ### Query Validation
 FspQuery includes a validation mechanism to ensure query parameters are well-formed and do not contain invalid values.
@@ -141,32 +151,6 @@ This feature ensures seamless integration with API endpoints by converting query
 
 
 
-## Dependency Injection
-You can add it to your project using dependency injection:
-```csharp
-services.AddFspQuery();
-```
-
-## Repository
-[GitHub Repository](https://github.com/ceronus/filter-sort-page-query)
-
-## License
-This project is licensed under the MIT License.
-
----
-🚀 **FspQuery** makes filtering, sorting, and paging effortless.
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -198,21 +182,21 @@ public static class IQueryableExtensions
 }
 ```
 
-## Configuration
-You can customize default behaviors via dependency injection:
-```csharp
-services.AddFspQuery();
-```
 
-## Repository
-[GitHub Repository](https://github.com/yourusername/fspquery)
+
+
 
 ## License
 This project is licensed under the [MIT License.](LICENSE.md)
 
-## Contributing
-Contributions are welcome! Feel free to submit issues or pull requests.
-
 ---
-🚀 **FspQuery** makes filtering, sorting, and paging effortless. Get started today!
+🚀 **FspQuery** makes filtering, sorting, and paging effortless.
+
+
+
+
+
+
+
+
 
