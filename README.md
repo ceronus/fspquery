@@ -1,4 +1,4 @@
-﻿# FspQuery
+﻿# ![Logo](https://github.com/ceronus/filter-sort-page-query/blob/master/doc/icons/icon-64x64.png?raw=true) FspQuery
 
 FspQuery is a powerful and lightweight library designed to simplify filtering, sorting, and paging for structured queries.
 It offers seamless integration with LINQ-based queries and provides an intuitive API for working with large datasets efficiently.
@@ -204,7 +204,7 @@ services.AddFspQuery();
 [GitHub Repository](https://github.com/yourusername/fspquery)
 
 ## License
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License.](LICENSE.md)
 
 ## Contributing
 Contributions are welcome! Feel free to submit issues or pull requests.
