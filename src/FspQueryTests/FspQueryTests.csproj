@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
+
+		<!-- Assembly Information -->
+		<RootNamespace>FspQuery</RootNamespace>
+
+		<!-- Package Information -->
+		<Authors>Ceronus</Authors>
+		<Company>Ceronus</Company>
+		<Copyright>Copyright © Ceronus 2025</Copyright>
+
+		<!-- License -->
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+		<!-- Repository -->
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/ceronus/filter-sort-page-query</RepositoryUrl>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+	</PropertyGroup>
+	
+	<!-- Includes -->
+	<ItemGroup>
+		<Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+	</ItemGroup>
+
+	<!-- Package References -->
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+		<PackageReference Include="MSTest" Version="3.8.2" />
+	</ItemGroup>
+
+	<!-- Project References -->
+	<ItemGroup>
+		<ProjectReference Include="..\FspQuery\FspQuery.csproj" />
+	</ItemGroup>
+
+</Project>

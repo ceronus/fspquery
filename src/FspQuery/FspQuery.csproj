@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+
+		<IsPackable>true</IsPackable>
+		
+		<!-- Assembly Information -->
+		<RootNamespace>FspQuery</RootNamespace>
+		<AssemblyName>FspQuery</AssemblyName>
+
+		<!-- Package Information -->
+		<Version>1.0.0</Version>
+		<PackageId>FspQuery</PackageId>
+		<Product>FspQuery</Product>
+		<Title>FspQuery</Title>
+		<Description>A lightweight .NET library for filtering, sorting, and paging structured queries .</Description>
+		<NeutralLanguage>en-US</NeutralLanguage>
+
+		<PackageTags>fspq;filter-sort-page-query</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageIcon>icon-128x128.png</PackageIcon>
+		<PackageIconUrl>https://github.com/ceronus/filter-sort-page-query/doc/icons/icon-64x64.png</PackageIconUrl>
+
+		<Authors>Ceronus</Authors>
+		<Company>Ceronus</Company>
+		<Copyright>Copyright © Ceronus 2025</Copyright>
+
+		<!-- License -->
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+		<!-- Repository -->
+		<RepositoryType>git</RepositoryType>
+		<RepositoryUrl>https://github.com/ceronus/filter-sort-page-query</RepositoryUrl>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		
+	</PropertyGroup>
+
+	<!-- Package References -->
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
+	  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.2" />
+	</ItemGroup>
+
+</Project>
