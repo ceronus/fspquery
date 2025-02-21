@@ -1,0 +1,36 @@
+name: Publish NuGet Package
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  NuGet:
+    
+    runs-on: windows-latest
+    env:
+      NUGET_SOURCE_URL: https://api.nuget.org/v3/index.json
+      NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }} 
+    
+    steps:
+    
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET Cores
+      uses: actions/setup-dotnet@v4
+      with:
+        source-url: ${{ env.NUGET_SOURCE_URL }}
+        dotnet-version: 9.x
+    
+    - name: Build solution and create nuget package (dotnet pack)
+      run: dotnet pack --configuration release --output publish
+      working-directory: src
+
+    - name: Publish package to nuget.org registry (dotnet nuget push)
+      run: dotnet nuget push **/publish/*.nupkg --api-key ${{ env.NUGET_AUTH_TOKEN}} --source ${{ env.NUGET_SOURCE_URL }} --no-symbols --skip-duplicate
+      
+
+# TODO: Create and additional job for GitHub 
+# source-url: https://nuget.pkg.github.com/ceronus/index.json
+# NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}} 
