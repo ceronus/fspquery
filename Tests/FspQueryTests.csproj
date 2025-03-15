@@ -40,7 +40,7 @@
 
 	<!-- Project References -->
 	<ItemGroup>
-		<ProjectReference Include="..\FspQuery\FspQuery.csproj" />
+		<ProjectReference Include="..\src\FspQuery.csproj" />
 	</ItemGroup>
 
 </Project>
