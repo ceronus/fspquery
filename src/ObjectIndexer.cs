@@ -91,30 +91,31 @@ public class ObjectIndexer : IObjectIndexer
     private readonly object _setLock = new();
 
     public void SetValue<T>(JsonElement element, T original, string? propertyName)
+        => SetValue(element, typeof(T), original?.GetType(), propertyName);
+
+    private void SetValue(JsonElement element, Type valueType, Type? originalType, string? propertyName)
     {
         lock (_setLock)
         {
-            if (original == null) throw new ArgumentNullException(nameof(original));
-            if (string.IsNullOrEmpty(propertyName)) throw new ArgumentNullException(nameof(propertyName));
+            ArgumentNullException.ThrowIfNull(originalType);
+            ArgumentException.ThrowIfNullOrWhiteSpace(propertyName);
 
             object? value;
-
-            Type valueType = typeof(T);
 
             // if the type was object, determine the type
             if (valueType == typeof(object))
             {
-                valueType = original.GetType();
+                valueType = originalType;
 
                 // unable to determine the type
-                if (valueType == typeof(object)) throw new ArgumentException($"The value type {{{valueType}}} is not a supported type.");
+                if (valueType == typeof(object)) throw new ArgumentException($"The value type {{{valueType}}} is not a supported type.", nameof(valueType));
             }
 
             // add the type to the registry
             Add(valueType);
 
             // check if the property is read-only (not setter)
-            if (_proertyInfos[valueType][propertyName].GetSetMethod() == null) throw new ArgumentException($"{{{propertyName}}} does not have a set method (it is read-only).");
+            if (_proertyInfos[valueType][propertyName].GetSetMethod() == null) throw new ArgumentException($"{{{propertyName}}} does not have a set method (it is read-only).", nameof(valueType));
 
             // store the property type
             Type propertyType = _proertyInfos[valueType][propertyName].PropertyType;
@@ -140,7 +141,7 @@ public class ObjectIndexer : IObjectIndexer
                     goto ParseGeneric;
                 case JsonValueKind.Undefined:
                 default:
-                    throw new ArgumentException($"The value kind '{element.ValueKind}' is not supported.");
+                    throw new ArgumentException($"The value kind '{element.ValueKind}' is not supported.", nameof(element));
             }
 
         ParsePrimitives:
@@ -194,7 +195,7 @@ public class ObjectIndexer : IObjectIndexer
                     {
                         string? enumStringValue = element.GetString();
                         if (!Enum.TryParse(propertyType, enumStringValue, out value))
-                            throw new ArgumentException($"The value {{{enumStringValue}}} is invalid.");
+                            throw new ArgumentException($"The value {{{enumStringValue}}} is invalid.", nameof(element));
                         goto SetValue;
                     }
 
@@ -220,16 +221,16 @@ public class ObjectIndexer : IObjectIndexer
                     foreach (JsonProperty jsonProperty in doc.RootElement.EnumerateObject())
                     {
                         string innerElementPropertyName = _proertyInfos[valueType][propertyName].Name;
-                        object? innerElementObject = original.GetType()?.GetProperty(innerElementPropertyName)?.GetValue(original, null);
+                        object? innerElementObject = originalType.GetType()?.GetProperty(innerElementPropertyName)?.GetValue(originalType, null);
 
                         // in the event that the inner element of the current database object is null, we need to new one up 
                         if (innerElementObject == null)
                         {
                             // new up the object
-                            Type? innerElementType = original.GetType()?.GetProperty(innerElementPropertyName)?.PropertyType;
+                            Type? innerElementType = originalType.GetType()?.GetProperty(innerElementPropertyName)?.PropertyType;
                             Debug.Assert(innerElementType is not null);
-                            original.GetType()?.GetProperty(innerElementPropertyName)?.SetValue(original, Activator.CreateInstance(innerElementType));
-                            innerElementObject = original.GetType()?.GetProperty(innerElementPropertyName)?.GetValue(original, null);
+                            originalType.GetType()?.GetProperty(innerElementPropertyName)?.SetValue(originalType, Activator.CreateInstance(innerElementType));
+                            innerElementObject = originalType.GetType()?.GetProperty(innerElementPropertyName)?.GetValue(originalType, null);
                         }
 
                         JsonElement innerElement = doc.RootElement.GetProperty(jsonProperty.Name);
@@ -254,7 +255,7 @@ public class ObjectIndexer : IObjectIndexer
 
         // set the value
         SetValue:
-            _proertyInfos[valueType][propertyName].SetValue(original, value);
+            _proertyInfos[valueType][propertyName].SetValue(originalType, value);
             return;
         }
     }
@@ -313,7 +314,11 @@ public class ObjectIndexer : IObjectIndexer
                             if (attribute.ConstructorArguments.Count != 1)
                                 throw new InvalidOperationException("The constructor for the attribute does not match JsonPropertyName(string value)");
 
-                            propertyName = attribute.ConstructorArguments[0].Value?.ToString() ?? throw new InvalidOperationException();
+
+                            if (string.IsNullOrWhiteSpace(attribute.ConstructorArguments[0].Value?.ToString()))
+                                throw new InvalidOperationException("The attribute does not contain a valid value.");
+
+                            propertyName = attribute.ConstructorArguments[0].Value!.ToString()!;
 
                             // no longer need to iterate once the attribute is found
                             // skip to the next property
