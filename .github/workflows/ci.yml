@@ -5,7 +5,6 @@ env:
 
 permissions:
   contents: read
-  packages: read
 
 on:
   push:
@@ -35,9 +34,6 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dotnet }}
-          source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache NuGet
         uses: actions/cache@v4
