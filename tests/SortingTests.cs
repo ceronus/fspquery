@@ -18,19 +18,19 @@ public class SortingTests
 
     private class Computer
     {
-        public string? Name { get; set; }
-        public Mainboard? Mainboard { get; set; }
+        [JsonPropertyName("name")] public string? Name { get; set; }
+        [JsonPropertyName("mainboard")] public Mainboard? Mainboard { get; set; }
     }
 
     private class Mainboard
     {
-        public string? Name { get; set; }
+        [JsonPropertyName("name")] public string? Name { get; set; }
         [JsonPropertyName("cpu")] public CentralProcessingUnit? CentralProcessingUnit { get; set; }
     }
 
     private class CentralProcessingUnit
     {
-        public string? Name { get; set; }
+        [JsonPropertyName("name")] public string? Name { get; set; }
         [JsonPropertyName("cores")] public int NumberOfCores { get; set; }
     }
 
