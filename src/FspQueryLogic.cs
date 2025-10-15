@@ -163,10 +163,10 @@ public class FspQueryLogic : IFspQueryLogic
     private IEnumerable<(Type propertyType, string propertyName)> GetMembers(Type type, string propertyAccessor)
     {
         Type? currentType = type;
-        string[] jsonPropertyNames = GetPropertySegments(propertyAccessor);
-        for (int i = 0; i < jsonPropertyNames.Length; i++)
+        string[] propertyNames = GetPropertySegments(propertyAccessor);
+        for (int i = 0; i < propertyNames.Length; i++)
         {
-            PropertyInfo? propertyInfo = _indexer.GetPropertyInfo(currentType, jsonPropertyNames[i]) ?? throw new FspQueryException($"The property accessor \"{propertyAccessor}\" is invalid.");
+            PropertyInfo? propertyInfo = _indexer.GetPropertyInfo(currentType, propertyNames[i]) ?? throw new FspQueryException($"The property accessor \"{propertyAccessor}\" is invalid.");
             currentType = propertyInfo.PropertyType;
 
             yield return (currentType, propertyInfo.Name);

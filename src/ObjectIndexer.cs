@@ -8,13 +8,13 @@ namespace FspQuery;
 public class ObjectIndexer : IObjectIndexer
 {
     private readonly JsonSerializerOptions _options;
-    private readonly Dictionary<Type, Dictionary<string, PropertyInfo>> _cache;
+    private readonly Dictionary<Type, Dictionary<string, PropertyInfo>> _proertyInfos;
 
     public ObjectIndexer() : this(CreateDefaultJsonSerializerOptions()) { }
 
     public ObjectIndexer(JsonSerializerOptions options)
     {
-        _cache = [];
+        _proertyInfos = [];
         _options = options ?? throw new ArgumentNullException(nameof(options));
     }
 
@@ -24,52 +24,52 @@ public class ObjectIndexer : IObjectIndexer
         Add(typeof(T));
     }
 
-    public bool ContainsPropertyName(Type type, string? jsonPropertyName)
+    public bool ContainsPropertyName(Type type, string? propertyName)
     {
-        if (string.IsNullOrEmpty(jsonPropertyName)) return false;
+        if (string.IsNullOrEmpty(propertyName)) return false;
 
-        return this[type].ContainsKey(jsonPropertyName);
+        return this[type].ContainsKey(propertyName);
     }
 
-    public bool ContainsPropertyName<T>(string? jsonPropertyName)
-        => ContainsPropertyName(typeof(T), jsonPropertyName);
+    public bool ContainsPropertyName<T>(string? propertyName)
+        => ContainsPropertyName(typeof(T), propertyName);
 
-    public PropertyInfo? GetPropertyInfo(Type type, string? jsonPropertyName)
+    public PropertyInfo? GetPropertyInfo(Type type, string? propertyName)
     {
-        if (string.IsNullOrEmpty(jsonPropertyName)) return null;
-        if (!ContainsPropertyName(type, jsonPropertyName)) return null;
+        if (string.IsNullOrEmpty(propertyName)) return null;
+        if (!ContainsPropertyName(type, propertyName)) return null;
 
-        return this[type][jsonPropertyName];
+        return this[type][propertyName];
     }
 
-    public PropertyInfo? GetPropertyInfo<T>(string? jsonPropertyName)
-        => GetPropertyInfo(typeof(T), jsonPropertyName);
+    public PropertyInfo? GetPropertyInfo<T>(string? propertyName)
+        => GetPropertyInfo(typeof(T), propertyName);
 
-    public string? GetPropertyName(Type type, string? jsonPropertyName)
+    public string? GetPropertyName(Type type, string? propertyName)
     {
-        if (string.IsNullOrEmpty(jsonPropertyName)) return null;
-        if (!ContainsPropertyName(type, jsonPropertyName)) return null;
+        if (string.IsNullOrEmpty(propertyName)) return null;
+        if (!ContainsPropertyName(type, propertyName)) return null;
 
-        return this[type][jsonPropertyName].Name;
+        return this[type][propertyName].Name;
     }
 
-    public string? GetPropertyName<T>(string? jsonPropertyName)
-        => GetPropertyName(typeof(T), jsonPropertyName);
+    public string? GetPropertyName<T>(string? propertyName)
+        => GetPropertyName(typeof(T), propertyName);
 
-    public Type? GetPropertyType(Type type, string? jsonPropertyName)
-        => GetPropertyInfo(type, jsonPropertyName)?.PropertyType;
+    public Type? GetPropertyType(Type type, string? propertyName)
+        => GetPropertyInfo(type, propertyName)?.PropertyType;
 
-    public Type? GetPropertyType<T>(string? jsonPropertyName)
-        => GetPropertyType(typeof(T), jsonPropertyName);
+    public Type? GetPropertyType<T>(string? propertyName)
+        => GetPropertyType(typeof(T), propertyName);
 
-    public bool TrySetValue<T>(JsonElement element, T original, string? jsonPropertyName)
+    public bool TrySetValue<T>(JsonElement element, T original, string? propertyName)
     {
-        if (original == null || string.IsNullOrEmpty(jsonPropertyName))
+        if (original == null || string.IsNullOrEmpty(propertyName))
             return false;
 
         try
         {
-            SetValue(element, original, jsonPropertyName);
+            SetValue(element, original, propertyName);
             return true;
         }
         catch (JsonException)
@@ -90,12 +90,12 @@ public class ObjectIndexer : IObjectIndexer
 
     private readonly object _setLock = new();
 
-    public void SetValue<T>(JsonElement element, T original, string? jsonPropertyName)
+    public void SetValue<T>(JsonElement element, T original, string? propertyName)
     {
         lock (_setLock)
         {
             if (original == null) throw new ArgumentNullException(nameof(original));
-            if (string.IsNullOrEmpty(jsonPropertyName)) throw new ArgumentNullException(nameof(jsonPropertyName));
+            if (string.IsNullOrEmpty(propertyName)) throw new ArgumentNullException(nameof(propertyName));
 
             object? value;
 
@@ -114,10 +114,10 @@ public class ObjectIndexer : IObjectIndexer
             Add(valueType);
 
             // check if the property is read-only (not setter)
-            if (_cache[valueType][jsonPropertyName].GetSetMethod() == null) throw new ArgumentException($"{{{jsonPropertyName}}} does not have a set method (it is read-only).");
+            if (_proertyInfos[valueType][propertyName].GetSetMethod() == null) throw new ArgumentException($"{{{propertyName}}} does not have a set method (it is read-only).");
 
             // store the property type
-            Type propertyType = _cache[valueType][jsonPropertyName].PropertyType;
+            Type propertyType = _proertyInfos[valueType][propertyName].PropertyType;
 
             // check the json value
             switch (element.ValueKind)
@@ -205,13 +205,13 @@ public class ObjectIndexer : IObjectIndexer
         ParseObject:
             // complex types
             {
-                Type type = _cache[valueType][jsonPropertyName].PropertyType;
+                Type type = _proertyInfos[valueType][propertyName].PropertyType;
 
                 // add the type to the register
                 Add(type);
 
                 // if the property is has an inner object with no properties
-                if (_cache[type].Count == 0) goto ParseGeneric;
+                if (_proertyInfos[type].Count == 0) goto ParseGeneric;
 
                 {
                     using JsonDocument doc = JsonDocument.Parse(element.GetRawText());
@@ -219,7 +219,7 @@ public class ObjectIndexer : IObjectIndexer
                     // perform the custom PATCH operation
                     foreach (JsonProperty jsonProperty in doc.RootElement.EnumerateObject())
                     {
-                        string innerElementPropertyName = _cache[valueType][jsonPropertyName].Name;
+                        string innerElementPropertyName = _proertyInfos[valueType][propertyName].Name;
                         object? innerElementObject = original.GetType()?.GetProperty(innerElementPropertyName)?.GetValue(original, null);
 
                         // in the event that the inner element of the current database object is null, we need to new one up 
@@ -254,7 +254,7 @@ public class ObjectIndexer : IObjectIndexer
 
         // set the value
         SetValue:
-            _cache[valueType][jsonPropertyName].SetValue(original, value);
+            _proertyInfos[valueType][propertyName].SetValue(original, value);
             return;
         }
     }
@@ -268,7 +268,7 @@ public class ObjectIndexer : IObjectIndexer
     {
         get
         {
-            if (!_cache.ContainsKey(propertyType))
+            if (!_proertyInfos.ContainsKey(propertyType))
             {
                 Add(propertyType);
             }
@@ -276,7 +276,7 @@ public class ObjectIndexer : IObjectIndexer
             {
                 _addLockEvent.Wait();
             }
-            return _cache[propertyType];
+            return _proertyInfos[propertyType];
         }
     }
 
@@ -292,15 +292,15 @@ public class ObjectIndexer : IObjectIndexer
                 _addLockEvent.Reset();
 
                 // register already has the type mapped
-                if (_cache.ContainsKey(propertyType)) return;
+                if (_proertyInfos.ContainsKey(propertyType)) return;
 
                 // add the property to the register
-                _cache.Add(propertyType, []);
+                _proertyInfos.Add(propertyType, []);
 
                 // populate dictionary
                 foreach (PropertyInfo propertyInfo in propertyType.GetProperties())
                 {
-                    string jsonPropertyName = propertyInfo.Name;
+                    string propertyName = propertyInfo.Name;
 
                     // iterate over the custom attributes
                     foreach (CustomAttributeData attribute in propertyInfo.CustomAttributes)
@@ -313,7 +313,7 @@ public class ObjectIndexer : IObjectIndexer
                             if (attribute.ConstructorArguments.Count != 1)
                                 throw new InvalidOperationException("The constructor for the attribute does not match JsonPropertyName(string value)");
 
-                            jsonPropertyName = attribute.ConstructorArguments[0].Value?.ToString() ?? throw new InvalidOperationException();
+                            propertyName = attribute.ConstructorArguments[0].Value?.ToString() ?? throw new InvalidOperationException();
 
                             // no longer need to iterate once the attribute is found
                             // skip to the next property
@@ -322,7 +322,7 @@ public class ObjectIndexer : IObjectIndexer
                     }
 
                     // add the property name
-                    _cache[propertyType].Add(jsonPropertyName, propertyInfo);
+                    _proertyInfos[propertyType].Add(propertyName, propertyInfo);
                 }
             }
             finally
