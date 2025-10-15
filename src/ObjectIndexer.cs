@@ -28,6 +28,7 @@ public class ObjectIndexer : IObjectIndexer
     public bool ContainsPropertyName(Type type, string? jsonPropertyName)
     {
         if (string.IsNullOrEmpty(jsonPropertyName)) return false;
+
         return this[type].ContainsKey(jsonPropertyName);
     }
 
@@ -39,8 +40,7 @@ public class ObjectIndexer : IObjectIndexer
         if (string.IsNullOrEmpty(jsonPropertyName)) return null;
         if (!ContainsPropertyName(type, jsonPropertyName)) return null;
 
-        string normalizedPropertyName = jsonPropertyName.ToUpperInvariant();
-        return this[type][normalizedPropertyName].PropertyInfo;
+        return this[type][jsonPropertyName].PropertyInfo;
     }
 
     public PropertyInfo? GetPropertyInfo<T>(string? jsonPropertyName)
@@ -51,8 +51,7 @@ public class ObjectIndexer : IObjectIndexer
         if (string.IsNullOrEmpty(jsonPropertyName)) return null;
         if (!ContainsPropertyName(type, jsonPropertyName)) return null;
 
-        string normalizedPropertyName = jsonPropertyName.ToUpperInvariant();
-        return this[type][normalizedPropertyName].PropertyInfo.Name;
+        return this[type][jsonPropertyName].PropertyInfo.Name;
     }
 
     public string? GetPropertyName<T>(string? jsonPropertyName)
@@ -97,7 +96,7 @@ public class ObjectIndexer : IObjectIndexer
         lock (_setLock)
         {
             if (original == null) throw new ArgumentNullException(nameof(original));
-            if (string.IsNullOrEmpty(jsonPropertyName)) throw new ArgumentNullException(nameof(jsonPropertyName));
+            if (string.IsNullOrEmpty((string?)jsonPropertyName)) throw new ArgumentNullException(nameof((String)jsonPropertyName));
 
             object? value;
 
@@ -115,14 +114,11 @@ public class ObjectIndexer : IObjectIndexer
             // add the type to the registry
             Add(valueType);
 
-            // normalize the property name
-            string normalizedPropertyName = jsonPropertyName.ToUpperInvariant();
-
             // check if the property is read-only (not setter)
-            if (_cache[valueType][normalizedPropertyName].PropertyInfo.GetSetMethod() == null) throw new ArgumentException($"{{{jsonPropertyName}}} does not have a set method (it is read-only).");
+            if (_cache[valueType][jsonPropertyName].PropertyInfo.GetSetMethod() == null) throw new ArgumentException($"{{{jsonPropertyName}}} does not have a set method (it is read-only).");
 
             // store the property type
-            Type propertyType = _cache[valueType][normalizedPropertyName].PropertyInfo.PropertyType;
+            Type propertyType = _cache[valueType][jsonPropertyName].PropertyInfo.PropertyType;
 
             // check the json value
             switch (element.ValueKind)
@@ -210,7 +206,7 @@ public class ObjectIndexer : IObjectIndexer
         ParseObject:
             // complex types
             {
-                Type type = _cache[valueType][normalizedPropertyName].PropertyInfo.PropertyType;
+                Type type = _cache[valueType][jsonPropertyName].PropertyInfo.PropertyType;
 
                 // add the type to the register
                 Add(type);
@@ -224,7 +220,7 @@ public class ObjectIndexer : IObjectIndexer
                     // perform the custom PATCH operation
                     foreach (JsonProperty jsonProperty in doc.RootElement.EnumerateObject())
                     {
-                        string innerElementPropertyName = _cache[valueType][normalizedPropertyName].PropertyInfo.Name;
+                        string innerElementPropertyName = _cache[valueType][jsonPropertyName].PropertyInfo.Name;
                         object? innerElementObject = original.GetType()?.GetProperty(innerElementPropertyName)?.GetValue(original, null);
 
                         // in the event that the inner element of the current database object is null, we need to new one up 
@@ -259,7 +255,7 @@ public class ObjectIndexer : IObjectIndexer
 
         // set the value
         SetValue:
-            _cache[valueType][normalizedPropertyName].PropertyInfo.SetValue(original, value);
+            _cache[valueType][jsonPropertyName].PropertyInfo.SetValue(original, value);
             return;
         }
     }
@@ -326,11 +322,8 @@ public class ObjectIndexer : IObjectIndexer
                         }
                     }
 
-                    // normalize the property name
-                    string normalizedPropertyName = jsonPropertyName.ToUpperInvariant();
-
                     // add the property name
-                    _cache[propertyType].Add(normalizedPropertyName, (jsonPropertyName, propertyInfo));
+                    _cache[propertyType].Add(jsonPropertyName, (jsonPropertyName, propertyInfo));
                 }
             }
             finally
