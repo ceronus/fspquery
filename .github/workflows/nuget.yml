@@ -1,4 +1,6 @@
 name: Publish NuGet Package
+permissions:
+  contents: read
 
 on:
   release:
@@ -29,8 +31,3 @@ jobs:
 
     - name: Publish package to nuget.org registry (dotnet nuget push)
       run: dotnet nuget push **/publish/*.nupkg --api-key ${{ env.NUGET_AUTH_TOKEN}} --source ${{ env.NUGET_SOURCE_URL }} --no-symbols --skip-duplicate
-      
-
-# TODO: Create and additional job for GitHub 
-# source-url: https://nuget.pkg.github.com/ceronus/index.json
-# NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}} 

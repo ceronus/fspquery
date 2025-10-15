@@ -72,11 +72,11 @@ public static class IEnumerableKeyValuePairExtensions
 
         foreach (KeyValuePair<string, StringValues> query in queries)
         {
-            string? key = query.Key?.ToLowerInvariant();
+            string? key = query.Key;
             string value = query.Value.ToString();
 
             // check for missing key
-            if (key == null)
+            if (string.IsNullOrWhiteSpace(key))
             {
                 errorMessage = $"Invalid or malformed query.";
                 return false;

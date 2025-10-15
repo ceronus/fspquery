@@ -1,31 +1,28 @@
 name: Continuous Integration
+permissions:
+  contents: read
 
 on:
   push:
-    branches: 
+    branches:
       - master
-      
+      - release/**
+
     paths-ignore:
       - '.github/**'
       - 'doc/**'
 
 jobs:
-  NuGet:
-    
+  build-and-test:
     runs-on: ubuntu-latest
-    env:
-      NUGET_SOURCE_URL: https://api.nuget.org/v3/index.json
-      NUGET_AUTH_TOKEN: ${{ secrets.NUGET_API_KEY }} 
-    
+
     steps:
-    
     - name: Checkout repository
       uses: actions/checkout@v4
     
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v4
       with:
-        source-url: ${{ env.NUGET_SOURCE_URL }}
         dotnet-version: 9.x
     
     - name: Restore dependencies (dotnet restore)

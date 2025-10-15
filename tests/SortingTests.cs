@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.DependencyModel;
+using static FspQuery.SortingTests;
 
 namespace FspQuery;
 
@@ -18,19 +20,19 @@ public class SortingTests
 
     private class Computer
     {
-        public string? Name { get; set; }
-        public Mainboard? Mainboard { get; set; }
+        [JsonPropertyName("name")] public string? Name { get; set; }
+        [JsonPropertyName("mainboard")] public Mainboard? Mainboard { get; set; }
     }
 
     private class Mainboard
     {
-        public string? Name { get; set; }
+        [JsonPropertyName("name")] public string? Name { get; set; }
         [JsonPropertyName("cpu")] public CentralProcessingUnit? CentralProcessingUnit { get; set; }
     }
 
     private class CentralProcessingUnit
     {
-        public string? Name { get; set; }
+        [JsonPropertyName("name")] public string? Name { get; set; }
         [JsonPropertyName("cores")] public int NumberOfCores { get; set; }
     }
 
@@ -238,5 +240,44 @@ public class SortingTests
         Assert.AreEqual(4, sorted[2].Mainboard?.CentralProcessingUnit?.NumberOfCores);
         Assert.AreEqual(8, sorted[3].Mainboard?.CentralProcessingUnit?.NumberOfCores);
         Assert.AreEqual(16, sorted[4].Mainboard?.CentralProcessingUnit?.NumberOfCores);
+    }
+
+    [TestMethod]
+    public void InvalidCaseSensitivePropertyNameThrowsExceptionOnFirstLevel()
+    {
+        Assert.IsNotNull(_indexer);
+        Assert.IsNotNull(_logic);
+
+        List<Computer>? unsorted = [new() { Name = "", Mainboard = new() { Name = "", CentralProcessingUnit = new() { Name = "", NumberOfCores = 0 } } }];
+        PageableQueryOptions query = new() { SortPropertyName = "Mainboard.cpu.cores" };
+
+        FspQueryException exception = Assert.ThrowsException<FspQueryException>(() => _logic.ApplySorting(unsorted.AsQueryable(), query));
+        Assert.AreEqual($"The property accessor \"{query.SortPropertyName}\" is invalid.", exception.Message);
+    }
+
+    [TestMethod]
+    public void InvalidCaseSensitivePropertyNameThrowsExceptionOnSecondLevel()
+    {
+        Assert.IsNotNull(_indexer);
+        Assert.IsNotNull(_logic);
+
+        List<Computer>? unsorted = [new() { Name = "", Mainboard = new() { Name = "", CentralProcessingUnit = new() { Name = "", NumberOfCores = 0 } } }];
+        PageableQueryOptions query = new() { SortPropertyName = "mainboard.Cpu.cores" };
+
+        FspQueryException exception = Assert.ThrowsException<FspQueryException>(() => _logic.ApplySorting(unsorted.AsQueryable(), query));
+        Assert.AreEqual($"The property accessor \"{query.SortPropertyName}\" is invalid.", exception.Message);
+    }
+
+    [TestMethod]
+    public void InvalidCaseSensitivePropertyNameThrowsExceptionOnThirdLevel()
+    {
+        Assert.IsNotNull(_indexer);
+        Assert.IsNotNull(_logic);
+
+        List<Computer>? unsorted = [ new() { Name = "", Mainboard = new() { Name = "", CentralProcessingUnit = new() { Name = "", NumberOfCores = 0 } } } ];
+        PageableQueryOptions query = new() { SortPropertyName = "mainboard.cpu.Cores" };
+
+        FspQueryException exception = Assert.ThrowsException<FspQueryException>(() => _logic.ApplySorting(unsorted.AsQueryable(), query));
+        Assert.AreEqual($"The property accessor \"{query.SortPropertyName}\" is invalid.", exception.Message);
     }
 }
