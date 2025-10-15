@@ -28,9 +28,7 @@ public class ObjectIndexer : IObjectIndexer
     public bool ContainsPropertyName(Type type, string? jsonPropertyName)
     {
         if (string.IsNullOrEmpty(jsonPropertyName)) return false;
-
-        string normalizedPropertyName = jsonPropertyName.ToUpperInvariant();
-        return this[type].ContainsKey(normalizedPropertyName);
+        return this[type].ContainsKey(jsonPropertyName);
     }
 
     public bool ContainsPropertyName<T>(string? jsonPropertyName)
