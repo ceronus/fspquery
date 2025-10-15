@@ -5,7 +5,7 @@ namespace FspQuery;
 
 public interface IObjectIndexer
 {
-    Dictionary<string, (string JsonPropertyName, PropertyInfo PropertyInfo)> this[Type propertyType] { get; }
+    Dictionary<string, PropertyInfo> this[Type propertyType] { get; }
     public void PreloadObject<T>() where T : class;
     bool ContainsPropertyName(Type type, string? jsonPropertyName);
     bool ContainsPropertyName<T>(string? jsonPropertyName);

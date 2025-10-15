@@ -8,8 +8,7 @@ namespace FspQuery;
 public class ObjectIndexer : IObjectIndexer
 {
     private readonly JsonSerializerOptions _options;
-    private readonly Dictionary<Type, Dictionary<string, (string JsonPropertyName, PropertyInfo PropertyInfo)>> _cache;
-
+    private readonly Dictionary<Type, Dictionary<string, PropertyInfo>> _cache;
 
     public ObjectIndexer() : this(CreateDefaultJsonSerializerOptions()) { }
 
@@ -40,7 +39,7 @@ public class ObjectIndexer : IObjectIndexer
         if (string.IsNullOrEmpty(jsonPropertyName)) return null;
         if (!ContainsPropertyName(type, jsonPropertyName)) return null;
 
-        return this[type][jsonPropertyName].PropertyInfo;
+        return this[type][jsonPropertyName];
     }
 
     public PropertyInfo? GetPropertyInfo<T>(string? jsonPropertyName)
@@ -51,7 +50,7 @@ public class ObjectIndexer : IObjectIndexer
         if (string.IsNullOrEmpty(jsonPropertyName)) return null;
         if (!ContainsPropertyName(type, jsonPropertyName)) return null;
 
-        return this[type][jsonPropertyName].PropertyInfo.Name;
+        return this[type][jsonPropertyName].Name;
     }
 
     public string? GetPropertyName<T>(string? jsonPropertyName)
@@ -96,7 +95,7 @@ public class ObjectIndexer : IObjectIndexer
         lock (_setLock)
         {
             if (original == null) throw new ArgumentNullException(nameof(original));
-            if (string.IsNullOrEmpty((string?)jsonPropertyName)) throw new ArgumentNullException(nameof((String)jsonPropertyName));
+            if (string.IsNullOrEmpty(jsonPropertyName)) throw new ArgumentNullException(nameof(jsonPropertyName));
 
             object? value;
 
@@ -115,10 +114,10 @@ public class ObjectIndexer : IObjectIndexer
             Add(valueType);
 
             // check if the property is read-only (not setter)
-            if (_cache[valueType][jsonPropertyName].PropertyInfo.GetSetMethod() == null) throw new ArgumentException($"{{{jsonPropertyName}}} does not have a set method (it is read-only).");
+            if (_cache[valueType][jsonPropertyName].GetSetMethod() == null) throw new ArgumentException($"{{{jsonPropertyName}}} does not have a set method (it is read-only).");
 
             // store the property type
-            Type propertyType = _cache[valueType][jsonPropertyName].PropertyInfo.PropertyType;
+            Type propertyType = _cache[valueType][jsonPropertyName].PropertyType;
 
             // check the json value
             switch (element.ValueKind)
@@ -206,7 +205,7 @@ public class ObjectIndexer : IObjectIndexer
         ParseObject:
             // complex types
             {
-                Type type = _cache[valueType][jsonPropertyName].PropertyInfo.PropertyType;
+                Type type = _cache[valueType][jsonPropertyName].PropertyType;
 
                 // add the type to the register
                 Add(type);
@@ -220,7 +219,7 @@ public class ObjectIndexer : IObjectIndexer
                     // perform the custom PATCH operation
                     foreach (JsonProperty jsonProperty in doc.RootElement.EnumerateObject())
                     {
-                        string innerElementPropertyName = _cache[valueType][jsonPropertyName].PropertyInfo.Name;
+                        string innerElementPropertyName = _cache[valueType][jsonPropertyName].Name;
                         object? innerElementObject = original.GetType()?.GetProperty(innerElementPropertyName)?.GetValue(original, null);
 
                         // in the event that the inner element of the current database object is null, we need to new one up 
@@ -255,7 +254,7 @@ public class ObjectIndexer : IObjectIndexer
 
         // set the value
         SetValue:
-            _cache[valueType][jsonPropertyName].PropertyInfo.SetValue(original, value);
+            _cache[valueType][jsonPropertyName].SetValue(original, value);
             return;
         }
     }
@@ -265,7 +264,7 @@ public class ObjectIndexer : IObjectIndexer
     private readonly object _addLock = new();
     private ManualResetEventSlim _addLockEvent = new(false);
 
-    public Dictionary<string, (string JsonPropertyName, PropertyInfo PropertyInfo)> this[Type propertyType]
+    public Dictionary<string, PropertyInfo> this[Type propertyType]
     {
         get
         {
@@ -323,7 +322,7 @@ public class ObjectIndexer : IObjectIndexer
                     }
 
                     // add the property name
-                    _cache[propertyType].Add(jsonPropertyName, (jsonPropertyName, propertyInfo));
+                    _cache[propertyType].Add(jsonPropertyName, propertyInfo);
                 }
             }
             finally
