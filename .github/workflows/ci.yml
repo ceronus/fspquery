@@ -1,6 +1,11 @@
 name: Continuous Integration
+
+env:
+      SOLUTION_NAME: FspQuery
+
 permissions:
   contents: read
+  packages: read
 
 on:
   push:
@@ -10,29 +15,59 @@ on:
 
     paths-ignore:
       - '.github/**'
-      - 'doc/**'
+      - 'docs/**'
+      - 'README.md'
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+        dotnet: [ '8.x', '9.x' ]
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-    
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.x
-    
-    - name: Restore dependencies (dotnet restore)
-      run: dotnet restore
-      working-directory: src
-      
-    - name: Build (dotnet build)
-      run: dotnet build --configuration release --no-restore
-      working-directory: src
-      
-    - name: Test (dotnet test)
-      run: dotnet test --configuration release --no-build --verbosity normal
-      working-directory: src
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ matrix.dotnet }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+          source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.nuget/packages
+            "C:\Users\runneradmin\.nuget\packages"
+          key: nuget-${{ runner.os }}-${{ matrix.dotnet }}-${{ hashFiles('**/*.sln', '**/*.csproj', 'global.json') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-${{ matrix.dotnet }}-
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore ${{ env.SOLUTION_NAME }}.sln
+
+      - name: Build (Release)
+        run: dotnet build ${{ env.SOLUTION_NAME }}.sln --configuration Release --no-restore
+
+      - name: Test (no-build)
+        run: >
+          dotnet test ${{ env.SOLUTION_NAME }}.sln
+          --configuration Release
+          --no-build
+          --collect "XPlat Code Coverage"
+          --logger "trx;LogFileName=results.trx"
+          --results-directory ./artifacts/test-results
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}-${{ matrix.dotnet }}
+          path: artifacts/test-results/**
