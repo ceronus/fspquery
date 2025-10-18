@@ -1,16 +1,25 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FspQuery;
 public static class DependencyInjection
 {
     public static IServiceCollection AddFspQuery(this IServiceCollection services)
-        => AddFspQuery(services, default);
+        => AddFspQuery(services);
 
-    public static IServiceCollection AddFspQuery(this IServiceCollection services, JsonSerializerOptions? options)
+    [Obsolete]
+    public static IServiceCollection AddFspQuery(this IServiceCollection services, JsonSerializerOptions? options = default)
+        => AddFspQuery(services, true, JsonKnownNamingPolicy.Unspecified, options);
+
+    public static IServiceCollection AddFspQuery(
+        this IServiceCollection services,
+        bool? useCaseInsensitive = true,
+        JsonKnownNamingPolicy? namingPolicy = JsonKnownNamingPolicy.Unspecified,
+        JsonSerializerOptions? options = default)
     {
         services
-            .AddSingleton<IObjectIndexer, ObjectIndexer>(serviceProvider => options == default ? new() : new(options))
+            .AddSingleton<IObjectIndexer, ObjectIndexer>(ObjectIndexer.ImplemtationFactory(useCaseInsensitive, namingPolicy, options))
             .AddSingleton<IFspQueryLogic, FspQueryLogic>()
             .AddSingleton<IFspQueryValidator, FspQueryValidator>();
 

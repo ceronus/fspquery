@@ -49,14 +49,13 @@ public class FilteringTests
     public static void Initialize(TestContext testContext)
 #pragma warning restore IDE0060 // Remove unused parameter
     {
+        bool useCaseInsensitive = false;
         _options = new()
         {
-            MaxDepth = 2048,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = useCaseInsensitive
         };
-
-        _indexer = new(_options);
+        _indexer = new(useCaseInsensitive, JsonKnownNamingPolicy.CamelCase, _options);
         _logic = new(_indexer);
     }
 
