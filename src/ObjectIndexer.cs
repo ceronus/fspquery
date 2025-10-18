@@ -12,7 +12,7 @@ public class ObjectIndexer : IObjectIndexer
     private readonly JsonSerializerOptions _options;
     private readonly Dictionary<Type, Dictionary<string, PropertyInfo>> _proertyInfos;
 
-    public ObjectIndexer() : this(true, JsonKnownNamingPolicy.CamelCase, CreateDefaultJsonSerializerOptions()) { }
+    public ObjectIndexer() : this(true, JsonKnownNamingPolicy.CamelCase, CreateDefaultJsonSerializerOptions(true, JsonKnownNamingPolicy.CamelCase)) { }
 
     public ObjectIndexer(bool useCaseInsensitive, JsonKnownNamingPolicy namingPolicy, JsonSerializerOptions options)
     {
