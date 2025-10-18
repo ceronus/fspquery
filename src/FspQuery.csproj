@@ -4,9 +4,8 @@
 		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-
 		<IsPackable>true</IsPackable>
-		
+
 		<!-- Assembly Information -->
 		<RootNamespace>FspQuery</RootNamespace>
 		<AssemblyName>FspQuery</AssemblyName>
@@ -35,7 +34,7 @@
 		<RepositoryType>git</RepositoryType>
 		<RepositoryUrl>https://github.com/ceronus/filter-sort-page-query</RepositoryUrl>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
-		
+
 	</PropertyGroup>
 
 	<!-- Includes -->
@@ -48,8 +47,8 @@
 
 	<!-- Package References -->
 	<ItemGroup>
-	  <PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
-	  <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="5.0.17" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.2" />
 	</ItemGroup>
 
 </Project>
