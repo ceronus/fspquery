@@ -2,20 +2,34 @@
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FspQuery;
 
 public class ObjectIndexer : IObjectIndexer
 {
+    private readonly JsonKnownNamingPolicy _namingPolicy;
     private readonly JsonSerializerOptions _options;
     private readonly Dictionary<Type, Dictionary<string, PropertyInfo>> _proertyInfos;
 
-    public ObjectIndexer() : this(CreateDefaultJsonSerializerOptions()) { }
+    public ObjectIndexer() : this(true, JsonKnownNamingPolicy.CamelCase, CreateDefaultJsonSerializerOptions()) { }
 
-    public ObjectIndexer(JsonSerializerOptions options)
+    public ObjectIndexer(bool useCaseInsensitive, JsonKnownNamingPolicy namingPolicy, JsonSerializerOptions options)
     {
+        ArgumentNullException.ThrowIfNull(options);
+
+        _namingPolicy = namingPolicy;
         _proertyInfos = [];
-        _options = options ?? throw new ArgumentNullException(nameof(options));
+        _options = options;
+    }
+
+    internal static Func<IServiceProvider, ObjectIndexer> ImplemtationFactory(bool? useCaseInsensitive, JsonKnownNamingPolicy? namingPolicy, JsonSerializerOptions? options)
+    {
+        useCaseInsensitive ??= true;
+        namingPolicy ??= JsonKnownNamingPolicy.CamelCase;
+        options ??= CreateDefaultJsonSerializerOptions((bool)useCaseInsensitive, (JsonKnownNamingPolicy)namingPolicy);
+
+        return serviceProvider => new((bool)useCaseInsensitive, (JsonKnownNamingPolicy)namingPolicy, (JsonSerializerOptions)options);
     }
 
     public void PreloadObject<T>()
@@ -301,7 +315,7 @@ public class ObjectIndexer : IObjectIndexer
                 // populate dictionary
                 foreach (PropertyInfo propertyInfo in propertyType.GetProperties())
                 {
-                    string propertyName = propertyInfo.Name;
+                    string propertyName = ConvertName(propertyInfo.Name, _namingPolicy);
 
                     // iterate over the custom attributes
                     foreach (CustomAttributeData attribute in propertyInfo.CustomAttributes)
@@ -338,13 +352,35 @@ public class ObjectIndexer : IObjectIndexer
         }
     }
 
-    private static JsonSerializerOptions CreateDefaultJsonSerializerOptions()
+    private static string ConvertName(string propertyName, JsonKnownNamingPolicy namingPolicy)
     {
+        JsonNamingPolicy? policy = ResolveJsonNamingPolicy(namingPolicy);
+        return policy == null
+            ? propertyName
+            : policy.ConvertName(propertyName);
+    }
+
+    private static JsonSerializerOptions CreateDefaultJsonSerializerOptions(bool useCaseInsensitive, JsonKnownNamingPolicy namingPolicy)
+    {
+        JsonNamingPolicy? policy = ResolveJsonNamingPolicy(namingPolicy);
         return new()
         {
-            MaxDepth = 2048,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true
+            PropertyNamingPolicy = policy,
+            PropertyNameCaseInsensitive = useCaseInsensitive
+        };
+    }
+
+    private static JsonNamingPolicy? ResolveJsonNamingPolicy(JsonKnownNamingPolicy namingPolicy)
+    {
+        return namingPolicy switch
+        {
+            JsonKnownNamingPolicy.Unspecified => default,
+            JsonKnownNamingPolicy.CamelCase => JsonNamingPolicy.CamelCase,
+            JsonKnownNamingPolicy.SnakeCaseLower => JsonNamingPolicy.SnakeCaseLower,
+            JsonKnownNamingPolicy.SnakeCaseUpper => JsonNamingPolicy.SnakeCaseUpper,
+            JsonKnownNamingPolicy.KebabCaseLower => JsonNamingPolicy.KebabCaseLower,
+            JsonKnownNamingPolicy.KebabCaseUpper => JsonNamingPolicy.KebabCaseUpper,
+            _ => throw new ArgumentOutOfRangeException(nameof(namingPolicy), namingPolicy, null),
         };
     }
 }
